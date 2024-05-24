@@ -1,0 +1,156 @@
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'dart:async';
+
+class Carousel extends StatefulWidget {
+  const Carousel({super.key});
+
+  @override
+  State<Carousel> createState() => _CarouselState();
+}
+
+// List<String> caroussImages = [];
+class _CarouselState extends State<Carousel> {
+  int _currentIndex = 0;
+  PageController _pageController = PageController();
+  List<String> caroussImages = [];
+
+  Future<List<String>> getCaroussImages() async {
+    List<String> images = [];
+    try {
+      final Reference storageReference =
+          FirebaseStorage.instance.ref("statique/promotion");
+      final ListResult result = await storageReference.list();
+      // print(
+      // "============================== final2========================================");
+
+      for (var item in result.items) {
+        final String imageUrl = await item.getDownloadURL();
+        images.add(imageUrl);
+      }
+      // print(
+      // "===================================images added===================================");
+    } catch (error) {
+      print("Erreur lors de la récupération des images : $error");
+    }
+    // print(images);
+    // print(
+    // "======================================================================");
+    // print(
+    // "======================================================================");
+    // print(
+    // "======================================================================");
+    return images;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getCaroussImages().then((images) {
+      setState(() {
+        caroussImages = images;
+        // print(
+        // "===================================ooooooook===================================");
+      });
+
+      Timer.periodic(Duration(seconds: 5), (timer) {
+        if (_currentIndex < caroussImages.length - 1) {
+          _currentIndex++;
+        } else {
+          _currentIndex = 0;
+        }
+        _pageController.animateToPage(_currentIndex,
+            duration: Duration(milliseconds: 500), curve: Curves.easeOut);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 70, bottom: 120),
+        child: Column(
+          children: <Widget>[
+            Text(
+              "Promotions et nouveautés",
+              style: TextStyle(
+                color: Colors.orange,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            SizedBox(
+              height: 200,
+              child: PageView.builder(
+                itemCount: caroussImages.length,
+                controller: _pageController, //import du page controller
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical:
+                            20.0), // margin: EdgeInsets.symmetric(horizontal: 10.0),
+
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(
+                              0.3), // Couleur et opacité de l'ombre
+                          spreadRadius: 2, // Étalement de l'ombre
+                          blurRadius: 3, // Flou de l'ombre
+                          offset: Offset(0, 3),
+                        ), // Décalage de l'ombre (élévation)
+                      ], // Bords arrondis
+                    ),
+
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(10.0), // Bords arrondis
+                      child: Image.network(
+                        caroussImages[index],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: caroussImages.map((image) {
+                //iteration de la liste d'image
+                int index = caroussImages.indexOf(image);
+                return Container(
+                  width: 8.0,
+                  height: 8.0,
+                  margin: EdgeInsets.symmetric(
+                    horizontal: 2.0,
+                  ),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentIndex == index ? Colors.orange : Colors.grey,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

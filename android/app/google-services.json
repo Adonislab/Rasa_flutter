@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "448208010165",
+    "project_id": "ahime-134d2",
+    "storage_bucket": "ahime-134d2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448208010165:android:d729f5f66dcccc0cec77fc",
+        "android_client_info": {
+          "package_name": "com.example.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCi_2Ax2GitLD8ATrwrescz-WchfghzFD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
