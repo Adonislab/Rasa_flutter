@@ -58,6 +58,7 @@ dependencies:
   geocoding: ^2.1.1
   flutter_google_places: ^0.3.0
   speech_to_text: ^6.6.0
+  flutter_tts: ^4.0.2
  
   
 
