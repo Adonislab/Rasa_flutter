@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_tts/flutter_tts.dart';
 
 void main() {
   runApp(PresentationApp());
@@ -32,13 +33,46 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   TextEditingController _textController = TextEditingController();
   stt.SpeechToText _speech = stt.SpeechToText();
+  FlutterTts _flutterTts = FlutterTts();
   List<String> _messages = [];
   bool _isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTts();
+  }
+
+  void _initializeTts() async {
+    try {
+      await _flutterTts.setLanguage('fr-FR'); // Configurer pour le français
+      await _flutterTts.setSpeechRate(0.5); // Vitesse de la parole
+      await _flutterTts.setVolume(1.0); // Volume
+      await _flutterTts.setPitch(1.0); // Tonalité
+    } catch (e) {
+      print('Erreur lors de l\'initialisation de TTS: $e');
+    }
+  }
 
   void _sendMessage(String message) {
     setState(() {
       _messages.add(message);
     });
+    _textController.clear(); // Effacer le texte après envoi
+  }
+
+  Future<void> _speak(String message) async {
+    print('Speaking: $message'); // Log pour débogage
+    try {
+      var result = await _flutterTts.speak(message);
+      if (result == 1) {
+        print('Speech started');
+      } else {
+        print('Speech not started');
+      }
+    } catch (e) {
+      print('Erreur lors de la lecture: $e');
+    }
   }
 
   void _listen() async {
@@ -70,7 +104,7 @@ class _ChatPageState extends State<ChatPage> {
               _textController.text = result.recognizedWords;
             });
           },
-          localeId: 'fr_FR',  
+          localeId: 'fr_FR', 
         );
       }
     } else {
@@ -85,6 +119,7 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     _textController.dispose();
     _speech.stop();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -101,6 +136,10 @@ class _ChatPageState extends State<ChatPage> {
                 itemBuilder: (BuildContext context, int index) {
                   return ListTile(
                     title: Text(_messages[index]),
+                    trailing: IconButton(
+                      icon: Icon(Icons.volume_up),
+                      onPressed: () => _speak(_messages[index]),
+                    ),
                   );
                 },
               ),
@@ -138,7 +177,6 @@ class _ChatPageState extends State<ChatPage> {
                     onPressed: () {
                       if (_textController.text.isNotEmpty) {
                         _sendMessage(_textController.text);
-                        _textController.clear();
                       }
                     },
                   ),
