@@ -33,6 +33,7 @@ class _ChatPageState extends State<ChatPage> {
   TextEditingController _textController = TextEditingController();
   stt.SpeechToText _speech = stt.SpeechToText();
   List<String> _messages = [];
+  bool _isListening = false;
 
   void _sendMessage(String message) {
     setState(() {
@@ -41,27 +42,42 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _listen() async {
-    if (!_speech.isListening) {
+    if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (status) {
           print('onStatus: $status');
+          if (status == 'done' || status == 'notListening') {
+            setState(() {
+              _isListening = false;
+            });
+          }
         },
         onError: (error) {
           print('onError: $error');
+          setState(() {
+            _isListening = false;
+          });
         },
       );
 
       if (available) {
+        setState(() {
+          _isListening = true;
+        });
         _speech.listen(
           onResult: (result) {
             setState(() {
               _textController.text = result.recognizedWords;
             });
           },
+          localeId: 'fr_FR',  
         );
       }
     } else {
       _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
     }
   }
 
@@ -102,14 +118,17 @@ class _ChatPageState extends State<ChatPage> {
               child: Row(
                 children: <Widget>[
                   IconButton(
-                    icon: Icon(Icons.mic),
+                    icon: Icon(
+                      Icons.mic,
+                      color: _isListening ? Colors.red : Colors.black,
+                    ),
                     onPressed: _listen,
                   ),
                   Expanded(
                     child: TextField(
                       controller: _textController,
                       decoration: InputDecoration(
-                        hintText: 'Type your message here...',
+                        hintText: 'Tapez votre message ici...',
                         border: InputBorder.none,
                       ),
                     ),
