@@ -179,7 +179,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(10, 80, 137, 0.8),
+      backgroundColor: Color.fromRGBO(173, 255, 47, 0.8),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -458,7 +458,7 @@ class _SignUpState extends State<SignUp> {
                       minimumSize:
                           MaterialStateProperty.all(Size(double.infinity, 48)),
                       backgroundColor: MaterialStatePropertyAll(
-                          Color.fromRGBO(10, 80, 137, 0.8)),
+                          Color.fromRGBO(173, 255, 47, 0.8)),
                     ),
                     child: _isLoading
                         ? CircularProgressIndicator(
