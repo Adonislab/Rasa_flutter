@@ -55,6 +55,7 @@ class _ChatPageState extends State<ChatPage> {
       _messages.add(message);
     });
     _textController.clear(); // Effacer le texte après envoi
+    _speak(message); // Lire le message automatiquement après l'envoi
   }
 
   Future<void> _speak(String message) async {
@@ -185,3 +186,4 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
+

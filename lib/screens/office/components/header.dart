@@ -150,7 +150,7 @@ class _HeaderState extends State<Header> {
                   decoration: const BoxDecoration(
                     // arrondir les coins de la boxe et ajouter de la couleur
                     // color: Colors.teal,
-                    color: Color.fromRGBO(173, 255, 47, 0.8),
+                    color: Color.fromRGBO(47, 109, 255, 0.8),
                     borderRadius: BorderRadius.vertical(
                       bottom: Radius.circular(45),
                     ),
