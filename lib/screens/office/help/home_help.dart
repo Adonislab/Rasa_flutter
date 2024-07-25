@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+
 class PresentationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -110,12 +111,13 @@ class _ChatPageState extends State<ChatPage> {
 
       for (var doc in snapshot.docs) {
         final product = doc.data();
-        results.add('${product['name']} - ${product['price']}'); // Adjust as needed
+        results.add('${product['name']} - ${product['price']}'); 
       }
     }
 
     return results;
   }
+
 
   Future<String?> _callHuggingFaceApi(String userMessage) async {
     try {
@@ -134,8 +136,14 @@ class _ChatPageState extends State<ChatPage> {
       );
 
       if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        return responseBody['choices'][0]['message']['content'];
+        // Assurez-vous que la réponse est décodée en UTF-8
+        final responseBody = utf8.decode(response.bodyBytes);
+        final jsonResponse = json.decode(responseBody);
+        String content = jsonResponse['choices'][0]['message']['content'];
+
+        // Nettoyage et transformation des caractères spéciaux
+        content = _sanitizeText(content);
+        return content;
       } else {
         print('Erreur API: ${response.statusCode}');
         print('Message API: ${response.body}');
@@ -145,6 +153,14 @@ class _ChatPageState extends State<ChatPage> {
       print('Erreur lors de l\'appel API: $e');
       return null;
     }
+  }
+
+  String _sanitizeText(String text) {
+    // Remplacer les caractères non imprimables ou spéciaux par des espaces ou d'autres caractères
+    text = text.replaceAll(RegExp(r'\p{C}'), ''); // Remplace les caractères de contrôle Unicode
+    text = text.replaceAll(RegExp(r'[\u{FFFD}]', unicode: true), ''); // Remplace les caractères de remplacement Unicode
+    text = text.trim(); 
+    return text;
   }
 
   Future<void> _speak(String message) async {
