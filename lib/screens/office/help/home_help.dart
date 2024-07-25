@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class PresentationApp extends StatelessWidget {
   @override
@@ -60,19 +61,60 @@ class _ChatPageState extends State<ChatPage> {
       _messages.add(message);
     });
     _textController.clear();
-    // _speak(message); // Supprimer cette ligne pour éviter de lire le message envoyé par l'utilisateur
+    
+    // Recherche des produits dans Firebase
+    if (message.contains('produit') || message.contains('recherche')) {
+      final foundProducts = await _searchProducts(message);
 
-    // Envoyer le message à l'API de Hugging Face
-    final response = await _callHuggingFaceApi(message);
-
-    if (response != null) {
-      setState(() {
-        _messages.add(response);
-      });
-      _speak(response); // Lire automatiquement la réponse de l'API
+      if (foundProducts.isNotEmpty) {
+        setState(() {
+          _messages.addAll(foundProducts);
+        });
+        _speak('Voici les résultats de votre recherche.');
+      } else {
+        // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
+        final response = await _callHuggingFaceApi(message);
+        if (response != null) {
+          setState(() {
+            _messages.add(response);
+          });
+          _speak(response);
+        } else {
+          print('Erreur lors de l\'appel à l\'API');
+        }
+      }
     } else {
-      print('Erreur lors de l\'appel à l\'API');
+      // Envoyer le message à l'API de Hugging Face pour d'autres requêtes
+      final response = await _callHuggingFaceApi(message);
+      if (response != null) {
+        setState(() {
+          _messages.add(response);
+        });
+        _speak(response);
+      } else {
+        print('Erreur lors de l\'appel à l\'API');
+      }
     }
+  }
+
+  Future<List<String>> _searchProducts(String query) async {
+    final firestore = FirebaseFirestore.instance;
+    final collections = ['marchand', 'event', 'food'];
+    List<String> results = [];
+
+    for (var collection in collections) {
+      final snapshot = await firestore.collection(collection)
+        .where('name', isGreaterThanOrEqualTo: query)
+        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+        .get();
+
+      for (var doc in snapshot.docs) {
+        final product = doc.data();
+        results.add('${product['name']} - ${product['price']}'); // Adjust as needed
+      }
+    }
+
+    return results;
   }
 
   Future<String?> _callHuggingFaceApi(String userMessage) async {
@@ -91,7 +133,7 @@ class _ChatPageState extends State<ChatPage> {
         }),
       );
 
-       if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
         final responseBody = json.decode(response.body);
         return responseBody['choices'][0]['message']['content'];
       } else {
