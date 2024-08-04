@@ -40,6 +40,12 @@ class _ChatPageState extends State<ChatPage> {
   final String _hfUrl =
       'https://api-inference.huggingface.co/models/mistralai/Mistral-Nemo-Instruct-2407/v1/chat/completions';
 
+  final Map<String, String> intentCollectionMap = {
+    'nourriture': 'marchands',
+    'produit': 'food',
+    'événement': 'events',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -66,22 +72,29 @@ class _ChatPageState extends State<ChatPage> {
     final lowerCaseMessage = message.toLowerCase(); // Convertir le message en minuscules
 
     // Liste de mots-clés pour détecter les intentions d'achat
-    final purchaseIntents = [
-      'acheter', 'commande', 'acheter', 'prix', 'achat', 'commandé', 'je voudrais acheter',
-      'je cherche', 'quel est le prix', 'disponible', 'stock', 'produit', 'nourriture', 'evènement',
-      'manger', 'faim', 'nourriture','mets', 'mangé'
-    ];
+    final purchaseIntents = {
+      'produit': ['acheter', 'commande', 'prix', 'achat', 'produit', 'marchandise'],
+      'nourriture': ['nourriture', 'manger', 'faim', 'mets', 'mangé'],
+      'événement': ['événement', 'soirée', 'concert', 'spectacle'],
+    };
 
-    bool isPurchaseIntent = purchaseIntents.any((intent) => lowerCaseMessage.contains(intent));
+    String? matchedIntent;
+    for (var intent in purchaseIntents.keys) {
+      if (purchaseIntents[intent]!.any((keyword) => lowerCaseMessage.contains(keyword))) {
+        matchedIntent = intent;
+        break;
+      }
+    }
 
-    if (isPurchaseIntent) {
-      final foundProducts = await _searchProducts(message);
+    if (matchedIntent != null) {
+      final collection = intentCollectionMap[matchedIntent]!;
+      final foundProducts = await _searchProducts(message, collection);
 
       if (foundProducts.isNotEmpty) {
         setState(() {
           _messages.addAll(foundProducts);
         });
-        
+
         // Concaténer les résultats dans le message vocal
         String resultsMessage = 'Nous vous proposons pour : ${foundProducts.join(', ')}';
         _speak(resultsMessage);
@@ -111,22 +124,19 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<List<String>> _searchProducts(String query) async {
+  Future<List<String>> _searchProducts(String query, String collection) async {
     final firestore = FirebaseFirestore.instance;
-    final collections = ['marchands', 'events', 'food'];
     List<String> results = [];
 
-    for (var collection in collections) {
-      final snapshot = await firestore
-          .collection(collection)
-          .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
-          .get();
+    final snapshot = await firestore
+        .collection(collection)
+        .where('name', isGreaterThanOrEqualTo: query)
+        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+        .get();
 
-      for (var doc in snapshot.docs) {
-        final product = doc.data();
-        results.add('${product['name']} - ${product['price']}');
-      }
+    for (var doc in snapshot.docs) {
+      final product = doc.data();
+      results.add('${product['name']} - ${product['price']}');
     }
 
     // Si aucun résultat n'est trouvé, retournez un message spécifique
@@ -289,18 +299,14 @@ class _ChatPageState extends State<ChatPage> {
                     child: TextField(
                       controller: _textController,
                       decoration: InputDecoration(
-                        hintText: 'Tapez votre message ici...',
+                        hintText: 'Type your message...',
                         border: InputBorder.none,
                       ),
                     ),
                   ),
                   IconButton(
                     icon: Icon(Icons.send),
-                    onPressed: () {
-                      if (_textController.text.isNotEmpty) {
-                        _sendMessage(_textController.text);
-                      }
-                    },
+                    onPressed: () => _sendMessage(_textController.text),
                   ),
                 ],
               ),
@@ -311,3 +317,4 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
+
