@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-
 class PresentationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -38,7 +37,8 @@ class _ChatPageState extends State<ChatPage> {
   bool _isListening = false;
 
   final String _hfToken = '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';
-  final String _hfUrl = 'https://api-inference.huggingface.co/models/mistralai/Mistral-Nemo-Instruct-2407/v1/chat/completions';
+  final String _hfUrl =
+      'https://api-inference.huggingface.co/models/mistralai/Mistral-Nemo-Instruct-2407/v1/chat/completions';
 
   @override
   void initState() {
@@ -62,16 +62,28 @@ class _ChatPageState extends State<ChatPage> {
       _messages.add(message);
     });
     _textController.clear();
-    
-    // Recherche des produits dans Firebase
-    if (message.contains('produit') || message.contains('recherche')) {
+
+    final lowerCaseMessage = message.toLowerCase(); // Convertir le message en minuscules
+
+    // Liste de mots-clés pour détecter les intentions d'achat
+    final purchaseIntents = [
+      'acheter', 'commande', 'acheter', 'prix', 'achat', 'commandé', 'je voudrais acheter',
+      'je cherche', 'quel est le prix', 'disponible', 'stock', 'produit', 'nourriture', 'evenement'
+    ];
+
+    bool isPurchaseIntent = purchaseIntents.any((intent) => lowerCaseMessage.contains(intent));
+
+    if (isPurchaseIntent) {
       final foundProducts = await _searchProducts(message);
 
       if (foundProducts.isNotEmpty) {
         setState(() {
           _messages.addAll(foundProducts);
         });
-        _speak('Voici les résultats de votre recherche.');
+        
+        // Concaténer les résultats dans le message vocal
+        String resultsMessage = 'Voici les résultats de votre recherche : ${foundProducts.join(', ')}';
+        _speak(resultsMessage);
       } else {
         // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
         final response = await _callHuggingFaceApi(message);
@@ -100,24 +112,30 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<List<String>> _searchProducts(String query) async {
     final firestore = FirebaseFirestore.instance;
-    final collections = ['marchand', 'event', 'food'];
+    final collections = ['marchands', 'events', 'food'];
     List<String> results = [];
 
     for (var collection in collections) {
-      final snapshot = await firestore.collection(collection)
-        .where('name', isGreaterThanOrEqualTo: query)
-        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
-        .get();
+      final snapshot = await firestore
+          .collection(collection)
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
 
       for (var doc in snapshot.docs) {
         final product = doc.data();
-        results.add('${product['name']} - ${product['price']}'); 
+        results.add('${product['name']} - ${product['price']}');
       }
     }
 
+    // Si aucun résultat n'est trouvé, retournez un message spécifique
+    if (results.isEmpty) {
+      return ['Aucun produit trouvé pour la recherche "$query".'];
+    }
+
+    print('Results: $results'); // Pour déboguer les résultats trouvés
     return results;
   }
-
 
   Future<String?> _callHuggingFaceApi(String userMessage) async {
     try {
@@ -129,7 +147,9 @@ class _ChatPageState extends State<ChatPage> {
         },
         body: json.encode({
           'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
-          'messages': [{'role': 'user', 'content': userMessage}],
+          'messages': [
+            {'role': 'user', 'content': userMessage}
+          ],
           'max_tokens': 500,
           'stream': false,
         }),
@@ -157,9 +177,11 @@ class _ChatPageState extends State<ChatPage> {
 
   String _sanitizeText(String text) {
     // Remplacer les caractères non imprimables ou spéciaux par des espaces ou d'autres caractères
-    text = text.replaceAll(RegExp(r'\p{C}'), ''); // Remplace les caractères de contrôle Unicode
-    text = text.replaceAll(RegExp(r'[\u{FFFD}]', unicode: true), ''); // Remplace les caractères de remplacement Unicode
-    text = text.trim(); 
+    text = text.replaceAll(
+        RegExp(r'\p{C}'), ''); // Remplace les caractères de contrôle Unicode
+    text = text.replaceAll(RegExp(r'[\u{FFFD}]', unicode: true),
+        ''); // Remplace les caractères de remplacement Unicode
+    text = text.trim();
     return text;
   }
 
