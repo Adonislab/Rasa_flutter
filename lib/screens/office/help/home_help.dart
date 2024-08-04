@@ -83,7 +83,7 @@ class _ChatPageState extends State<ChatPage> {
         });
         
         // Concaténer les résultats dans le message vocal
-        String resultsMessage = 'Voici les résultats de votre recherche : ${foundProducts.join(', ')}';
+        String resultsMessage = 'Nous vous proposons pour : ${foundProducts.join(', ')}';
         _speak(resultsMessage);
       } else {
         // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
