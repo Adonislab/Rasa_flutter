@@ -69,7 +69,7 @@ class _ChatPageState extends State<ChatPage> {
     final purchaseIntents = [
       'acheter', 'commande', 'acheter', 'prix', 'achat', 'commandé', 'je voudrais acheter',
       'je cherche', 'quel est le prix', 'disponible', 'stock', 'produit', 'nourriture', 'evènement',
-      'manger', 'faim', 'nourriture','mets'
+      'manger', 'faim', 'nourriture','mets', 'mangé'
     ];
 
     bool isPurchaseIntent = purchaseIntents.any((intent) => lowerCaseMessage.contains(intent));
