@@ -68,7 +68,8 @@ class _ChatPageState extends State<ChatPage> {
     // Liste de mots-clés pour détecter les intentions d'achat
     final purchaseIntents = [
       'acheter', 'commande', 'acheter', 'prix', 'achat', 'commandé', 'je voudrais acheter',
-      'je cherche', 'quel est le prix', 'disponible', 'stock', 'produit', 'nourriture', 'evenement'
+      'je cherche', 'quel est le prix', 'disponible', 'stock', 'produit', 'nourriture', 'evènement',
+      'manger', 'faim', 'nourriture','mets'
     ];
 
     bool isPurchaseIntent = purchaseIntents.any((intent) => lowerCaseMessage.contains(intent));
