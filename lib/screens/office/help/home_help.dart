@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -42,7 +43,7 @@ class _ChatPageState extends State<ChatPage> {
 
   final Map<String, String> intentCollectionMap = {
     'nourriture': 'marchands',
-    'produit': 'food',
+    'produit': 'boutiques',
     'événement': 'events',
   };
 
@@ -88,16 +89,20 @@ class _ChatPageState extends State<ChatPage> {
 
     if (matchedIntent != null) {
       final collection = intentCollectionMap[matchedIntent]!;
-      final foundProducts = await _searchProducts(message, collection);
+      final foundProducts = await _searchProducts(collection);
 
       if (foundProducts.isNotEmpty) {
         setState(() {
-          _messages.addAll(foundProducts);
+          _messages.addAll(foundProducts.map((product) => '${product['title']} - ${product['price']}'));
         });
 
         // Concaténer les résultats dans le message vocal
-        String resultsMessage = 'Nous vous proposons pour : ${foundProducts.join(', ')}';
+        String resultsMessage = 'Nous vous proposons les produits suivants :';
+        for (var product in foundProducts) {
+          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} FCFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
+        }
         _speak(resultsMessage);
+
       } else {
         // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
         final response = await _callHuggingFaceApi(message);
@@ -124,28 +129,49 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<List<String>> _searchProducts(String query, String collection) async {
+  Future<List<Map<String, dynamic>>> _searchProducts(String collection) async {
     final firestore = FirebaseFirestore.instance;
-    List<String> results = [];
 
-    final snapshot = await firestore
-        .collection(collection)
-        .where('name', isGreaterThanOrEqualTo: query)
-        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
-        .get();
+    // Récupérer un document aléatoire de la collection
+    final allDocs = await firestore.collection(collection).get();
+    final randomDoc = (allDocs.docs..shuffle()).first;
 
-    for (var doc in snapshot.docs) {
-      final product = doc.data();
-      results.add('${product['name']} - ${product['price']}');
+    // Extraire le champ 'produits' du document
+    final productsList = randomDoc.data()['produits'] as List<dynamic>;
+
+    // Sélectionner deux éléments aléatoires
+    final random = Random();
+    final selectedProducts = <Map<String, dynamic>>[];
+    final products = productsList.toList();
+
+    // S'assurer qu'il y a suffisamment de produits pour en sélectionner deux
+    if (products.length > 1) {
+      for (int i = 0; i < 2; i++) {
+        final randomIndex = random.nextInt(products.length);
+        final product = products[randomIndex];
+        products.removeAt(randomIndex); // Éviter les duplications
+
+        selectedProducts.add({
+          'categorie': product['categorie'] ?? '',
+          'description': product['description'] ?? '',
+          'price': product['price'] ?? '',
+          'title': product['title'] ?? '',
+          'image': product['image'] ?? '',
+        });
+      }
     }
 
-    // Si aucun résultat n'est trouvé, retournez un message spécifique
-    if (results.isEmpty) {
-      return ['Aucun produit trouvé pour la recherche "$query".'];
-    }
-
-    print('Results: $results'); // Pour déboguer les résultats trouvés
-    return results;
+    return selectedProducts.isEmpty
+        ? [
+            {
+              'categorie': 'Aucune catégorie',
+              'description': 'Aucune description',
+              'price': 'Aucun prix',
+              'title': 'Aucun titre',
+              'image': 'Aucune image',
+            }
+          ]
+        : selectedProducts;
   }
 
   Future<String?> _callHuggingFaceApi(String userMessage) async {
@@ -317,4 +343,3 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-
