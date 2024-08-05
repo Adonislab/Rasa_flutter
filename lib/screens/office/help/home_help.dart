@@ -34,7 +34,7 @@ class _ChatPageState extends State<ChatPage> {
   TextEditingController _textController = TextEditingController();
   stt.SpeechToText _speech = stt.SpeechToText();
   FlutterTts _flutterTts = FlutterTts();
-  List<String> _messages = [];
+  List<dynamic> _messages = [];
   bool _isListening = false;
 
   final String _hfToken = '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';
@@ -66,7 +66,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage(String message) async {
     setState(() {
-      _messages.add(message);
+      _messages.add({'type': 'text', 'content': message});
     });
     _textController.clear();
 
@@ -93,7 +93,10 @@ class _ChatPageState extends State<ChatPage> {
 
       if (foundProducts.isNotEmpty) {
         setState(() {
-          _messages.addAll(foundProducts.map((product) => '${product['title']} - ${product['price']}'));
+          _messages.addAll(foundProducts.map((product) => {
+            'type': 'product',
+            'product': product,
+          }));
         });
 
         // Concaténer les résultats dans le message vocal
@@ -108,7 +111,7 @@ class _ChatPageState extends State<ChatPage> {
         final response = await _callHuggingFaceApi(message);
         if (response != null) {
           setState(() {
-            _messages.add(response);
+            _messages.add({'type': 'text', 'content': response});
           });
           _speak(response);
         } else {
@@ -120,7 +123,7 @@ class _ChatPageState extends State<ChatPage> {
       final response = await _callHuggingFaceApi(message);
       if (response != null) {
         setState(() {
-          _messages.add(response);
+          _messages.add({'type': 'text', 'content': response});
         });
         _speak(response);
       } else {
@@ -292,13 +295,21 @@ class _ChatPageState extends State<ChatPage> {
               child: ListView.builder(
                 itemCount: _messages.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(_messages[index]),
-                    trailing: IconButton(
-                      icon: Icon(Icons.volume_up),
-                      onPressed: () => _speak(_messages[index]),
-                    ),
-                  );
+                  final message = _messages[index];
+                  if (message['type'] == 'text') {
+                    return ListTile(
+                      title: Text(message['content']),
+                      trailing: IconButton(
+                        icon: Icon(Icons.volume_up),
+                        onPressed: () => _speak(message['content']),
+                      ),
+                    );
+                  } else if (message['type'] == 'product') {
+                    final product = message['product'];
+                    return ProductCard(product: product);
+                  } else {
+                    return Container();
+                  }
                 },
               ),
             ),
@@ -339,6 +350,24 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ProductCard extends StatelessWidget {
+  final Map<String, dynamic> product;
+
+  ProductCard({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      child: ListTile(
+        leading: product['image'] != '' ? Image.network(product['image']) : null,
+        title: Text(product['title']),
+        subtitle: Text('Prix: ${product['price']} FCFA\nCatégorie: ${product['categorie']}\nDescription: ${product['description']}'),
       ),
     );
   }
