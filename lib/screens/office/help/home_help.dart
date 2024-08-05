@@ -74,9 +74,17 @@ class _ChatPageState extends State<ChatPage> {
 
     // Liste de mots-clés pour détecter les intentions d'achat
     final purchaseIntents = {
-      'produit': ['acheter', 'commande', 'prix', 'achat', 'produit', 'marchandise'],
-      'nourriture': ['nourriture', 'manger', 'faim', 'mets', 'mangé'],
-      'événement': ['événement', 'soirée', 'concert', 'spectacle'],
+      'produit': ['acheter', 'commander', 'acheter', 'consulter', 'rechercher', 'voir', 'comparer', 
+                  'acheté', 'commandé', 'acheté', 'consulté', 'recherché', 'comparé','essayer', 'essayé', 
+                  'trouver','produit', 'article', 'marchandise', 'bien', 'article', 'prix', 'catalogue', 
+                  'vente', 'offre', 'promotion', 'marque','prendre', 'veux', 'vouloir'],
+      'nourriture': ['manger', 'goûter', 'commander', 'déguster', 'cuisiner', 'préparer', 'boire', 'soif'
+                      'commander', 'réserver','mangé', 'goûté', 'commandé', 'dégusté', 'cuisiné', 'préparé', 
+                      'commandé', 'réservé','nourriture', 'plat', 'repas', 'cuisine', 'restaurant', 'repas', 'déjeuner', 
+                      'dîner', 'snack', 'menu', 'spécialité', 'ingrédient'],
+      'événement': ['assister', 'participer', 'réserver', 'acheter', 'organiser', 'planifier', 'annoncer', 'célébrer',
+                    'assisté', 'participé', 'réservé', 'acheté', 'organisé', 'planifié', 'annoncé', 'célébré',
+                    'événement', 'spectacle', 'concert', 'fête', 'soirée', 'réunion', 'festival', 'conférence', 'exposition', 'événementiel', 'activité'],
     };
 
     String? matchedIntent;
@@ -102,7 +110,7 @@ class _ChatPageState extends State<ChatPage> {
         // Concaténer les résultats dans le message vocal
         String resultsMessage = 'Nous vous proposons les produits suivants :';
         for (var product in foundProducts) {
-          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} Francs CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
+          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} Franc CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
         }
         _speak(resultsMessage);
 
