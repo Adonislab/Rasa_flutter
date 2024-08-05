@@ -102,7 +102,7 @@ class _ChatPageState extends State<ChatPage> {
         // Concaténer les résultats dans le message vocal
         String resultsMessage = 'Nous vous proposons les produits suivants :';
         for (var product in foundProducts) {
-          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} FCFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
+          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} Francs CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
         }
         _speak(resultsMessage);
 
@@ -364,11 +364,54 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.all(8.0),
-      child: ListTile(
-        leading: product['image'] != '' ? Image.network(product['image']) : null,
-        title: Text(product['title']),
-        subtitle: Text('Prix: ${product['price']} FCFA\nCatégorie: ${product['categorie']}\nDescription: ${product['description']}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Affichage de l'image en haut
+          if (product['image'] != '' && product['image'] != null)
+            Image.network(
+              product['image'],
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Affichage du titre
+                Text(
+                  product['title'],
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4),
+                // Affichage du prix
+                Text(
+                  'Prix: ${product['price']} FCFA',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                // Affichage de la catégorie
+                Text(
+                  'Catégorie: ${product['categorie']}',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                // Affichage de la description
+                Text(
+                  'Description: ${product['description']}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
