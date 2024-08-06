@@ -138,6 +138,8 @@ class _ChatPageState extends State<ChatPage> {
       ],
       'événement': [
         'assister',
+        'salle',
+        'sallon',
         'participer',
         'organiser',
         'planifier',
