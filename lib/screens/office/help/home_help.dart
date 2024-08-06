@@ -70,26 +70,103 @@ class _ChatPageState extends State<ChatPage> {
     });
     _textController.clear();
 
-    final lowerCaseMessage = message.toLowerCase(); // Convertir le message en minuscules
+    final lowerCaseMessage =
+        message.toLowerCase(); // Convertir le message en minuscules
 
     // Liste de mots-clés pour détecter les intentions d'achat
     final purchaseIntents = {
-      'produit': ['acheter', 'commander', 'acheter', 'consulter', 'rechercher', 'voir', 'comparer', 
-                  'acheté', 'commandé', 'acheté', 'consulté', 'recherché', 'comparé','essayer', 'essayé', 
-                  'trouver','produit', 'article', 'marchandise', 'bien', 'article', 'prix', 'catalogue', 
-                  'vente', 'offre', 'promotion', 'marque','prendre', 'veux', 'vouloir'],
-      'nourriture': ['manger', 'goûter', 'commander', 'déguster', 'cuisiner', 'préparer', 'boire', 'soif'
-                      'commander', 'réserver','mangé', 'goûté', 'commandé', 'dégusté', 'cuisiné', 'préparé', 
-                      'commandé', 'réservé','nourriture', 'plat', 'repas', 'cuisine', 'restaurant', 'repas', 'déjeuner', 
-                      'dîner', 'snack', 'menu', 'spécialité', 'ingrédient'],
-      'événement': ['assister', 'participer', 'réserver', 'acheter', 'organiser', 'planifier', 'annoncer', 'célébrer',
-                    'assisté', 'participé', 'réservé', 'acheté', 'organisé', 'planifié', 'annoncé', 'célébré',
-                    'événement', 'spectacle', 'concert', 'fête', 'soirée', 'réunion', 'festival', 'conférence', 'exposition', 'événementiel', 'activité'],
+      'produit': [
+        'acheter',
+        'commander',
+        'consulter',
+        'rechercher',
+        'voir',
+        'comparer',
+        'acheté',
+        'commandé',
+        'consulté',
+        'recherché',
+        'comparé',
+        'essayer',
+        'essayé',
+        'trouver',
+        'produit',
+        'article',
+        'marchandise',
+        'bien',
+        'article',
+        'prix',
+        'catalogue',
+        'vente',
+        'offre',
+        'promotion',
+        'marque',
+        'prendre',
+        'payé',
+        'payer'
+      ],
+      'nourriture': [
+        'manger',
+        'goûter',
+        'commander',
+        'déguster',
+        'cuisiner',
+        'préparer',
+        'boire',
+        'soif'
+            'commander',
+        'réserver',
+        'mangé',
+        'goûté',
+        'dégusté',
+        'cuisiné',
+        'préparé',
+        'réservé',
+        'nourriture',
+        'plat',
+        'repas',
+        'cuisine',
+        'restaurant',
+        'repas',
+        'déjeuner',
+        'dîner',
+        'snack',
+        'menu',
+        'spécialité',
+        'ingrédient',
+        'dîné'
+      ],
+      'événement': [
+        'assister',
+        'participer',
+        'organiser',
+        'planifier',
+        'annoncer',
+        'célébrer',
+        'assisté',
+        'participé',
+        'organisé',
+        'planifié',
+        'annoncé',
+        'célébré',
+        'événement',
+        'spectacle',
+        'concert',
+        'fête',
+        'soirée',
+        'réunion',
+        'festival',
+        'conférence',
+        'exposition',
+        'événementiel',
+        'activité'
+      ],
     };
 
     String? matchedIntent;
     for (var intent in purchaseIntents.keys) {
-      if (purchaseIntents[intent]!.any((keyword) => lowerCaseMessage.contains(keyword))) {
+      if (purchaseIntents[intent]!
+          .any((keyword) => lowerCaseMessage.contains(keyword))) {
         matchedIntent = intent;
         break;
       }
@@ -102,18 +179,19 @@ class _ChatPageState extends State<ChatPage> {
       if (foundProducts.isNotEmpty) {
         setState(() {
           _messages.addAll(foundProducts.map((product) => {
-            'type': 'product',
-            'product': product,
-          }));
+                'type': 'product',
+                'product': product,
+              }));
         });
 
         // Concaténer les résultats dans le message vocal
-        String resultsMessage = 'Nous vous proposons les produits suivants :';
+        String resultsMessage = 'Je vous propose les produits suivants :';
         for (var product in foundProducts) {
-          resultsMessage += '\n\n${product['title']}, au prix de ${product['price']} Franc CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
+          resultsMessage +=
+              '\n\n${product['title']}, au prix de ${product['price']} Franc CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
         }
+        resultsMessage += "Je suis encore jeune et je ne cesse de m'améliorer pour une assistance plus solide. Merci";
         _speak(resultsMessage);
-
       } else {
         // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
         final response = await _callHuggingFaceApi(message);
@@ -344,7 +422,7 @@ class _ChatPageState extends State<ChatPage> {
                     child: TextField(
                       controller: _textController,
                       decoration: InputDecoration(
-                        hintText: 'Type your message...',
+                        hintText: 'Votre message...',
                         border: InputBorder.none,
                       ),
                     ),
@@ -372,6 +450,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.all(8.0),
+      color: Colors.green,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -422,4 +501,3 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
-
