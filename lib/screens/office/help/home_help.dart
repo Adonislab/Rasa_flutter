@@ -76,13 +76,11 @@ class _ChatPageState extends State<ChatPage> {
     // Liste de mots-clés pour détecter les intentions d'achat
     final purchaseIntents = {
       'produit': [
-        'acheter',
         'commander',
         'consulter',
         'rechercher',
         'voir',
         'comparer',
-        'acheté',
         'commandé',
         'consulté',
         'recherché',
@@ -100,12 +98,12 @@ class _ChatPageState extends State<ChatPage> {
         'vente',
         'offre',
         'promotion',
-        'marque',
-        'prendre',
-        'payé',
-        'payer'
+        'marque',   
       ],
       'nourriture': [
+        'payé',
+        'payer',
+        'prendre',
         'manger',
         'goûter',
         'commander',
@@ -113,8 +111,10 @@ class _ChatPageState extends State<ChatPage> {
         'cuisiner',
         'préparer',
         'boire',
-        'soif'
-            'commander',
+        'soif',
+        'acheter',
+        'acheté',
+        'commander',
         'réserver',
         'mangé',
         'goûté',
