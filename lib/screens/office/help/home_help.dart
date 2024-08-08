@@ -176,7 +176,7 @@ class _ChatPageState extends State<ChatPage> {
 
     if (matchedIntent != null) {
       final collection = intentCollectionMap[matchedIntent]!;
-      final foundProducts = await _searchProducts(collection);
+      final foundProducts = await _searchProducts(collection, lowerCaseMessage);
 
       if (foundProducts.isNotEmpty) {
         setState(() {
@@ -190,9 +190,10 @@ class _ChatPageState extends State<ChatPage> {
         String resultsMessage = 'Je vous propose les produits suivants :';
         for (var product in foundProducts) {
           resultsMessage +=
-              '\n\n${product['title']}, au prix de ${product['price']} Franc CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}';
+              '\n\n${product['title']}, au prix de ${product['price']} Franc CFA. Il appartient à la catégorie ${product['categorie']} et est décrit comme : ${product['description']}.';
         }
-        resultsMessage += "Je suis encore jeune et je ne cesse de m'améliorer pour une assistance plus solide. Merci";
+        resultsMessage +=
+            "Je suis encore jeune et je ne cesse de m'améliorer pour une assistance plus solide. Merci";
         _speak(resultsMessage);
       } else {
         // Utilisation de l'API Hugging Face si aucun produit n'est trouvé
@@ -220,7 +221,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _searchProducts(String collection) async {
+  Future<List<Map<String, dynamic>>> _searchProducts(String collection, String lowerCaseMessage) async {
     final firestore = FirebaseFirestore.instance;
 
     // Récupérer un document aléatoire de la collection
@@ -230,28 +231,53 @@ class _ChatPageState extends State<ChatPage> {
     // Extraire le champ 'produits' du document
     final productsList = randomDoc.data()['produits'] as List<dynamic>;
 
+    // Convertir en liste de produits
+    final products = productsList.toList();
+
+    // Chercher un produit exact basé sur le message
+    Map<String, dynamic>? exactProduct;
+    final productTitle = lowerCaseMessage.trim().toLowerCase();
+    if (productTitle.isNotEmpty) {
+      print(productTitle);
+
+      exactProduct = products.firstWhere(
+        (product) {
+          final title = product['title']?.toLowerCase() ?? '';
+          // Vérifier si le titre du produit est contenu dans le texte recherché
+          final match = productTitle.contains(title);
+          //print('Produit: $title, Correspondance: $match');
+          return match;
+        },
+        orElse: () => <String, dynamic>{}, // Retourne une carte vide si aucun produit ne correspond
+      );
+
+      //print('Produit exact trouvé: $exactProduct');
+    }
+
     // Sélectionner deux éléments aléatoires
     final random = Random();
     final selectedProducts = <Map<String, dynamic>>[];
-    final products = productsList.toList();
 
-    // S'assurer qu'il y a suffisamment de produits pour en sélectionner deux
-    if (products.length > 1) {
-      for (int i = 0; i < 2; i++) {
-        final randomIndex = random.nextInt(products.length);
-        final product = products[randomIndex];
-        products.removeAt(randomIndex); // Éviter les duplications
-
-        selectedProducts.add({
-          'categorie': product['categorie'] ?? '',
-          'description': product['description'] ?? '',
-          'price': product['price'] ?? '',
-          'title': product['title'] ?? '',
-          'image': product['image'] ?? '',
-        });
-      }
+    // Ajouter le produit exact en premier, si trouvé
+    if (exactProduct != null && exactProduct.isNotEmpty) {
+      selectedProducts.add(exactProduct);
     }
 
+    // S'assurer qu'il y a suffisamment de produits pour en sélectionner deux
+    while (selectedProducts.length < 3 && products.isNotEmpty) {
+      final randomIndex = random.nextInt(products.length);
+      final product = products[randomIndex];
+      products.removeAt(randomIndex); // Éviter les duplications
+      selectedProducts.add({
+        'categorie': product['categorie'] ?? '',
+        'description': product['description'] ?? '',
+        'price': product['price'] ?? '',
+        'title': product['title'] ?? '',
+        'image': product['image'] ?? '',
+      });
+    }
+
+    // Retourner les produits sélectionnés
     return selectedProducts.isEmpty
         ? [
             {
@@ -264,6 +290,7 @@ class _ChatPageState extends State<ChatPage> {
           ]
         : selectedProducts;
   }
+
 
   Future<String?> _callHuggingFaceApi(String userMessage) async {
     try {
