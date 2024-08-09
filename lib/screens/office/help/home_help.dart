@@ -155,6 +155,8 @@ class _ChatPageState extends State<ChatPage> {
         'spectacle',
         'concert',
         'fête',
+        'louer',
+        'loué',
         'soirée',
         'réunion',
         'festival',
