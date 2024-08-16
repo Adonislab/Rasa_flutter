@@ -82,16 +82,16 @@ class _ChatPageState extends State<ChatPage> {
         'voir',
         'comparer',
         'commandé',
-	      'chaussure',
-	      'lotion',
-	      'corporelle',
-	      'montre',
-	      'cosmétique',
-	      'beauté',
-	      'machine',
-	      'traitement',
-	      'canapé',
-	      'fauteuil',
+        'chaussure',
+        'lotion',
+        'corporelle',
+        'montre',
+        'cosmétique',
+        'beauté',
+        'machine',
+        'traitement',
+        'canapé',
+        'fauteuil',
         'consulté',
         'recherché',
         'comparé',
@@ -107,19 +107,27 @@ class _ChatPageState extends State<ChatPage> {
         'catalogue',
         'vente',
         'offre',
-	      'offrir',
-	      'vouloir',
-	      'veux',
-	      "m'offrir",
-	      "s'offrir",
+        'offrir',
+        'vouloir',
+        'veux',
+        "m'offrir",
+        "s'offrir",
         'promotion',
-        'marque', 
+        'marque',
+        'couche',
+        'couche de bébé',
+        'bébé',
+        'couches',
+        'couches de bébé',
       ],
       'nourriture': [
         'faim',
         'payé',
         'payer',
         'prendre',
+        'hamburger',
+        'frite',
+        'salade',
         'manger',
         'goûter',
         'commander',
@@ -144,20 +152,27 @@ class _ChatPageState extends State<ChatPage> {
         'cuisine',
         'restaurant',
         'repas',
-	      'savourer',
-	      'savouré',
-	      'bouffer',
-	      'bouffé',
+        'savourer',
+        'savouré',
+        'bouffer',
+        'bouffé',
         'déjeuner',
         'dîner',
         'snack',
         'menu',
         'spécialité',
         'ingrédient',
+        'viande',
+        'oeuf',
+        'mets',
+        'mets local',
         'dîné'
-	      'boisson',
+        'boisson',
         'poisson'
-	      'jus',
+        'jus',
+        'jus de fruit',
+        'je veux manger',
+        'je veux mangé'
       ],
       'événement': [
         'assister',
@@ -173,14 +188,14 @@ class _ChatPageState extends State<ChatPage> {
         'organisé',
         'planifié',
         'annoncé',
-	      'mariage',
-	      'communion',
-	      'anniversaire',
-	      'chill',
-	      'baptême',
+        'mariage',
+        'communion',
+        'anniversaire',
+        'chill',
+        'baptême',
         'célébré',
         'évènement',
-	      'inviter',
+        'inviter',
         'spectacle',
         'concert',
         'fête',
@@ -191,13 +206,15 @@ class _ChatPageState extends State<ChatPage> {
         'festival',
         'conférence',
         'exposition',
-	      'décorer',
-	      'programmer',
-	      'animer',
-	      'animation',
-	      'fêter',
+        'décorer',
+        'programmer',
+        'animer',
+        'animation',
+        'fêter',
         'événementiel',
-        'activité'
+        'activité',
+        'annif',
+        'anniv'
       ],
     };
 
@@ -257,7 +274,8 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _searchProducts(String collection, String lowerCaseMessage) async {
+  Future<List<Map<String, dynamic>>> _searchProducts(
+      String collection, String lowerCaseMessage) async {
     final firestore = FirebaseFirestore.instance;
 
     // Récupérer un document aléatoire de la collection
@@ -284,7 +302,8 @@ class _ChatPageState extends State<ChatPage> {
           //print('Produit: $title, Correspondance: $match');
           return match;
         },
-        orElse: () => <String, dynamic>{}, // Retourne une carte vide si aucun produit ne correspond
+        orElse: () => <String,
+            dynamic>{}, // Retourne une carte vide si aucun produit ne correspond
       );
 
       //print('Produit exact trouvé: $exactProduct');
@@ -327,7 +346,6 @@ class _ChatPageState extends State<ChatPage> {
         : selectedProducts;
   }
 
-
   Future<String?> _callHuggingFaceApi(String userMessage) async {
     try {
       final response = await http.post(
@@ -339,10 +357,7 @@ class _ChatPageState extends State<ChatPage> {
         body: json.encode({
           'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
           'messages': [
-            {
-              'role': 'user', 
-              'content': 'Réponds en français : $userMessage'
-            }
+            {'role': 'user', 'content': 'Réponds en français : $userMessage'}
           ],
           'max_tokens': 500,
           'stream': false,
