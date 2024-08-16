@@ -116,7 +116,8 @@ class _ChatPageState extends State<ChatPage> {
         'marque', 
       ],
       'nourriture': [
-                'payé',
+        'faim',
+        'payé',
         'payer',
         'prendre',
         'manger',
@@ -159,7 +160,7 @@ class _ChatPageState extends State<ChatPage> {
 	      'jus',
       ],
       'événement': [
-               'assister',
+        'assister',
         'salle',
         'salon',
         'participer',
@@ -338,7 +339,10 @@ class _ChatPageState extends State<ChatPage> {
         body: json.encode({
           'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
           'messages': [
-            {'role': 'user', 'content': userMessage}
+            {
+              'role': 'user', 
+              'content': 'Réponds en français : $userMessage'
+            }
           ],
           'max_tokens': 500,
           'stream': false,
@@ -346,12 +350,10 @@ class _ChatPageState extends State<ChatPage> {
       );
 
       if (response.statusCode == 200) {
-        // Assurez-vous que la réponse est décodée en UTF-8
         final responseBody = utf8.decode(response.bodyBytes);
         final jsonResponse = json.decode(responseBody);
         String content = jsonResponse['choices'][0]['message']['content'];
 
-        // Nettoyage et transformation des caractères spéciaux
         content = _sanitizeText(content);
         return content;
       } else {
